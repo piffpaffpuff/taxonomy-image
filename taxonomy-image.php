@@ -33,9 +33,9 @@
 /**
  * Gui class
  */
-if (!class_exists('Insofern_Taxonomy_Image')) 
+if (!class_exists('Taxonomy_Image')) 
 {
-class Insofern_Taxonomy_Image
+class Taxonomy_Image
 {	
 	public $plugin_url;	
 	public $taxonomy;
@@ -46,14 +46,14 @@ class Insofern_Taxonomy_Image
 	/**
 	 * Constructor
 	 */
-	public function Insofern_Taxonomy_Image()
+	public function Taxonomy_Image()
 	{	
 		$this->plugin_url = plugins_url( '', __FILE__ );
-		$this->options_name = 'insofern_taxonomy_image_options';	
-		$this->metadata_name = 'insofern_taxonomy_image_id';
+		$this->options_name = 'taxonomy_image_options';	
+		$this->metadata_name = 'taxonomy_image_id';
 		
-		add_action( 'init', array( $this, 'register_tables' ) );
-		add_action( 'admin_init', array( $this, 'register_hooks' ) );
+		add_action( 'init', array( $this, 'init_hook' ) );
+		add_action( 'admin_init', array( $this, 'init_admin_hook' ) );
 	}
 	
 	/**
@@ -81,18 +81,32 @@ class Insofern_Taxonomy_Image
 	/**
 	 * Register any created table
 	 */
-	public function register_tables()
+	public function init_hook()
 	{
 		global $wpdb;
 		
+		// Register new table
 		$wpdb->termmeta = $wpdb->prefix . 'termmeta';
 		$this->enabled_taxonomies = get_option($this->options_name);
+		
+		// Load text domain
+		load_plugin_textdomain('taxonomy-image', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+
+		//
+		/*
+		$sql = "SELECT * FROM " . $wpdb->termmeta . " WHERE meta_key LIKE 'insofern_taxonomy_image_id' AND meta_value NOT LIKE ''";
+		$results = $wpdb->get_results($sql);
+		
+		foreach($results as $result){
+			update_metadata('term', $result->term_id, 'taxonomy_image_id', $result->meta_value);
+		}
+		*/
 	}
 	
 	/**
 	 * Init all admin hooks
 	 */
-	public function register_hooks()
+	public function init_admin_hook()
 	{
 		// Get the taxonomy
 		if( isset( $_GET['taxonomy'] ) ) 
@@ -113,7 +127,7 @@ class Insofern_Taxonomy_Image
 		add_action( 'admin_print_scripts-media-upload-popup', array( $this, 'add_media_scripts' ) );			
 			
 		// Get the option to check if this is an enabled taxonomy		
-		if( isset( $this->taxonomy )  && in_array( $this->taxonomy, $this->enabled_taxonomies ) ) 
+		if( isset( $this->taxonomy ) && !empty($this->enabled_taxonomies) &&  in_array( $this->taxonomy, $this->enabled_taxonomies ) ) 
 		{
 			add_action( $this->taxonomy . '_add_form_fields', array( $this, 'create_content' ) );
 			add_action( $this->taxonomy . '_edit_form_fields', array( $this, 'create_content' ) );
@@ -167,8 +181,8 @@ class Insofern_Taxonomy_Image
 		{
 		    if ($column == 'slug' ) 
 		    {
-				$ordered_columns['insofern_taxonomy_image_column'] =  __( 'Image', 'insofern_taxonomy_image' );
-				$ordered_columns['insofern_taxonomy_description_column'] =  __( 'Description', 'wp' );
+				$ordered_columns['taxonomy_image_column'] =  __( 'Image', 'taxonomy-image' );
+				$ordered_columns['taxonomy_description_column'] =  __( 'Description', 'wordpress' );
 			}
 			
 			$ordered_columns[$column] = $title;
@@ -184,7 +198,7 @@ class Insofern_Taxonomy_Image
     {
     	switch( $column_name )
     	{
-    		case 'insofern_taxonomy_image_column':
+    		case 'taxonomy_image_column':
     			$meta = get_metadata( 'term', $term, $this->metadata_name, true );
 				$src = wp_get_attachment_image_src( $meta, array(50, 50) );
 				
@@ -195,7 +209,7 @@ class Insofern_Taxonomy_Image
 					<?php 
 				}
     			break;
-    		case 'insofern_taxonomy_description_column':
+    		case 'taxonomy_description_column':
     			global $taxonomy;
 				$string = term_description( $term, $taxonomy );
 				$string = strip_tags( $string );
@@ -223,32 +237,30 @@ class Insofern_Taxonomy_Image
 	public function create_content( $tag )
 	{
 		$meta = get_metadata( 'term', $tag->term_id, $this->metadata_name, true );
-
-		$title = 'Image';
-		$add = 'Set image';
-		$remove = 'Remove image';
-		$description = 'The image is not prominent by default, however some themes may show it.';
-
 		$src = wp_get_attachment_image_src( $meta, 'thumbnail' );
 
 		// switch the output if not listing the categories
 		if( isset($_GET['action']) && $_GET['action'] == 'edit' ) : ?>
 		<tr class="form-field hide-if-no-js">
-			<th scope="row" valign="top"><label for="insofern_taxonomy_image"><?php _e( $title, 'insofern_taxonomy_image' ); ?></label></th>
-			<td><input name="<?php echo $this->metadata_name; ?>" id="insofern_taxonomy_image_id" type="hidden" value="<?php echo $meta; ?>" />
-			<span id="insofern_taxonomy_image_placeholder"><?php if( !empty( $src ) ) : ?><img src="<?php echo $src[0]; ?>" width="<?php echo $src[1]; ?>" height="<?php echo $src[2]; ?>" /><?php endif; ?></span>
-			<a href="#" id="insofern_taxonomy_image_remove_button" <?php if( !empty( $src ) ) : ?>style="display: inherit;"<?php endif; ?>><?php _e( $remove, 'insofern_taxonomy_image' ); ?></a>
-			<a href="media-upload.php?type=image&amp;TB_iframe=true" <?php if( !empty( $src ) ) : ?>style="display: none;"<?php endif; ?> id="insofern_taxonomy_image_add_button" class="thickbox"><?php _e( $add, 'insofern_taxonomy_image' ); ?></a>
-			<p class="description"><?php _e( $description, 'insofern_taxonomy_image' ); ?></p></td>
+			<th scope="row" valign="top">
+				<label for="taxonomy_image"><?php _e( 'Image', 'taxonomy-image' ); ?></label>
+			</th>
+			<td>
+				<input name="<?php echo $this->metadata_name; ?>" id="taxonomy_image_id" type="hidden" value="<?php echo $meta; ?>" />
+				<span id="taxonomy_image_placeholder"><?php if( !empty( $src ) ) : ?><img src="<?php echo $src[0]; ?>" width="<?php echo $src[1]; ?>" height="<?php echo $src[2]; ?>" /><?php endif; ?></span>
+				<a href="#" id="taxonomy_image_remove_button" <?php if( !empty( $src ) ) : ?>style="display: inherit;"<?php endif; ?>><?php _e( 'Remove image', 'taxonomy-image' ); ?></a>
+				<a href="media-upload.php?type=image&amp;TB_iframe=true" <?php if( !empty( $src ) ) : ?>style="display: none;"<?php endif; ?> id="taxonomy_image_add_button" class="thickbox"><?php _e( 'Set image', 'taxonomy-image' ); ?></a>
+				<p class="description"><?php _e( 'The image is not prominent by default, however some themes may show it.', 'taxonomy-image' ); ?></p>
+			</td>
 		</tr>
 		<?php else : ?>
 		<div class="form-field hide-if-no-js">
-			<label for="insofern_taxonomy_image"><?php _e( $title, 'insofern_taxonomy_image' ); ?></label>
-			<input name="<?php echo $this->metadata_name; ?>" id="insofern_taxonomy_image_id" type="hidden" value="<?php echo $meta; ?>" />
-			<span id="insofern_taxonomy_image_placeholder"><?php if( !empty( $src ) ) : ?><img src="<?php echo $src[0]; ?>" width="<?php echo $src[1]; ?>" height="<?php echo $src[2]; ?>" /><?php endif; ?></span>
-			<a href="#" id="insofern_taxonomy_image_remove_button" <?php if( !empty( $src ) ) : ?>style="display: inherit;"<?php endif; ?>><?php _e( $remove, 'insofern_taxonomy_image' ); ?></a>
-			<a href="media-upload.php?type=image&amp;TB_iframe=true" <?php if( !empty( $src ) ) : ?>style="display: none;"<?php endif; ?> id="insofern_taxonomy_image_add_button" class="thickbox"><?php _e( $add, 'insofern_taxonomy_image' ); ?></a>
-			<p class="description"><?php _e( $description, 'insofern_taxonomy_image' ); ?></p>
+			<label for="taxonomy_image"><?php _e( 'Image', 'taxonomy-image' ); ?></label>
+			<input name="<?php echo $this->metadata_name; ?>" id="taxonomy_image_id" type="hidden" value="<?php echo $meta; ?>" />
+			<span id="taxonomy_image_placeholder"><?php if( !empty( $src ) ) : ?><img src="<?php echo $src[0]; ?>" width="<?php echo $src[1]; ?>" height="<?php echo $src[2]; ?>" /><?php endif; ?></span>
+			<a href="#" id="taxonomy_image_remove_button" <?php if( !empty( $src ) ) : ?>style="display: inherit;"<?php endif; ?>><?php _e( 'Remove image', 'taxonomy-image' ); ?></a>
+			<a href="media-upload.php?type=image&amp;TB_iframe=true" <?php if( !empty( $src ) ) : ?>style="display: none;"<?php endif; ?> id="taxonomy_image_add_button" class="thickbox"><?php _e( 'Set image', 'taxonomy-image' ); ?></a>
+			<p class="description"><?php _e( 'The image is not prominent by default, however some themes may show it.', 'taxonomy-image' ); ?></p>
 		</div>		
 		<?php endif;
 	}
@@ -298,7 +310,7 @@ class Insofern_Taxonomy_Image
 				{
 					$attachment_id = $post->ID;
 					$src = wp_get_attachment_image_src( $attachment_id, 'thumbnail' );
-					$fields['buttons']['tr'] = '<tr class="insofern_taxonomy_image_row"><td></td><td class="savesend"><a href="#" class="button" id="insofern_taxonomy_image_set_button_' . $attachment_id . '" onclick="Insofern_setTaxonomyImage(\'' . $attachment_id . '\', \'' . $src[0] . '\');return false;">' . __( 'Use as category image', 'insofern_taxonomy_image' ) . '</a></td></tr>';
+					$fields['buttons']['tr'] = '<tr class="taxonomy_image_row"><td></td><td class="savesend"><a href="#" class="button" id="taxonomy_image_set_button_' . $attachment_id . '" onclick="setTaxonomyImage(\'' . $attachment_id . '\', \'' . $src[0] . '\');return false;">' . __( 'Use as image', 'taxonomy-image' ) . '</a></td></tr>';
 				}
 			}
 		}
@@ -312,8 +324,8 @@ class Insofern_Taxonomy_Image
 /**
  * Settings class
  */
-if (!class_exists('Insofern_Taxonomy_Image_Settings')) {
-class Insofern_Taxonomy_Image_Settings
+if (!class_exists('Taxonomy_Image_Settings')) {
+class Taxonomy_Image_Settings
 {	
 	private $options_name;
 	private $form_data_name;
@@ -321,12 +333,12 @@ class Insofern_Taxonomy_Image_Settings
 	/**
 	 * Constructor
 	 */
-	public function Insofern_Taxonomy_Image_Settings()
+	public function Taxonomy_Image_Settings()
 	{			
-		$this->options_name = 'insofern_taxonomy_image_options';
-		$this->form_data_name = 'insofern_taxonomy_image';
+		$this->options_name = 'taxonomy_image_options';
+		$this->form_data_name = 'taxonomy_image';
 		
-		add_action('admin_init', array($this, 'register_hooks'));
+		add_action('admin_init', array($this, 'init_admin_hook'));
 		add_action('admin_menu', array($this, 'add_page'));
 	}
 	
@@ -347,7 +359,7 @@ class Insofern_Taxonomy_Image_Settings
 		
 		foreach($taxonomies as $key => $value)
 		{
-			$option[$value] = true;
+			$option[$value] = $value;
 		}
 
 		add_option($this->options_name, $option);
@@ -364,12 +376,12 @@ class Insofern_Taxonomy_Image_Settings
 	/**
 	 * Register our settings. Add the settings section, and settings fields
 	 */
-	public function register_hooks()
+	public function init_admin_hook()
 	{
-		register_setting('insofern_taxonomy_image_options_group', $this->options_name);
+		register_setting('taxonomy_image_options_group', $this->options_name);
 		
 		add_settings_section('show_image_selection_section', '', array($this, 'create_show_image_selection_section'), __FILE__);
-		add_settings_field('show_image_selection_checkboxes', __('Show image selection', 'insofern_taxonomy_image'), array($this, 'create_show_image_selection_checkboxes'), __FILE__, 'show_image_selection_section');
+		add_settings_field('show_image_selection_checkboxes', __('Show image selection', 'taxonomy-image'), array($this, 'create_show_image_selection_checkboxes'), __FILE__, 'show_image_selection_section');
 	}
 	
 	/**
@@ -377,7 +389,7 @@ class Insofern_Taxonomy_Image_Settings
 	 */
 	public function add_page() 
 	{
-		add_options_page('Taxonomy Image Page', 'Taxonomy Image', 'administrator', __FILE__, array($this, 'create_page_content'));
+		add_options_page(__('Taxonomy Image', 'taxonomy-image'), __('Taxonomy Image', 'taxonomy-image'), 'administrator', __FILE__, array($this, 'create_page_content'));
 	}
 	
 	/**
@@ -388,10 +400,10 @@ class Insofern_Taxonomy_Image_Settings
 		// Check that the user has the required capability 
 		if (!current_user_can('manage_options'))
 		{
-			wp_die( __('You do not have sufficient permissions to access this page.') );
+			wp_die( __('You do not have sufficient permissions to access this page.', 'wordpress') );
 		}
 		
-		$hidden_submit = 'insofern_submit_hidden';
+		$hidden_submit = 'submit_hidden';
 		
 		// See if the user has posted us some information
 		if( isset($_POST[$hidden_submit]) && $_POST[$hidden_submit] == 'submit' )
@@ -400,19 +412,19 @@ class Insofern_Taxonomy_Image_Settings
 			update_option( $this->options_name, $_POST[$this->form_data_name] );
 			
 			// Put an settings updated message on the screen
-			?><div class="updated"><p><strong><?php _e('Settings saved.'); ?></strong></p></div><?php
+			?><div class="updated"><p><strong><?php _e('Settings saved.', 'wordpress'); ?></strong></p></div><?php
 		}
 		
 		// Now display the settings editing screen
 		?><div class="wrap">
 		<?php screen_icon('options-general'); ?>
-			<h2><?php _e('Taxonomy Image Settings', 'insofern_taxonomy_image'); ?></h2>
+			<h2><?php _e('Taxonomy Image Settings', 'taxonomy-image'); ?></h2>
 			<form action="" method="post">
 				<input type="hidden" name="<?php echo $hidden_submit; ?>" value="submit">
 				<?php settings_fields($this->options_name); ?>
 				<?php do_settings_sections(__FILE__); ?>
 				<p class="submit">
-					<input name="Submit" type="submit" class="button-primary" value="<?php esc_attr_e('Save Changes'); ?>" />
+					<input name="Submit" type="submit" class="button-primary" value="<?php esc_attr_e('Save Changes', 'wordpress'); ?>" />
 				</p>
 			</form>
 		</div><?php
@@ -459,13 +471,13 @@ class Insofern_Taxonomy_Image_Settings
 
 
 // initialize objects
-$Insofern_Taxonomy_Image = new Insofern_Taxonomy_Image();
-$Insofern_Taxonomy_Image_Settings = new Insofern_Taxonomy_Image_Settings();
+$Taxonomy_Image = new Taxonomy_Image();
+$Taxonomy_Image_Settings = new Taxonomy_Image_Settings();
 
 // set the activation hooks
-register_activation_hook(__FILE__, array( $Insofern_Taxonomy_Image, 'add_default_settings'));
-register_activation_hook(__FILE__, array( $Insofern_Taxonomy_Image_Settings, 'add_default_settings'));
-register_deactivation_hook(__FILE__, array( $Insofern_Taxonomy_Image_Settings, 'remove_default_settings'));
+register_activation_hook(__FILE__, array( $Taxonomy_Image, 'add_default_settings'));
+register_activation_hook(__FILE__, array( $Taxonomy_Image_Settings, 'add_default_settings'));
+register_deactivation_hook(__FILE__, array( $Taxonomy_Image_Settings, 'remove_default_settings'));
 
 
 // ------------------------------------------
@@ -480,12 +492,12 @@ if ( !function_exists( 'get_taxonomy_image_id' ) )
 {
 function get_taxonomy_image_id() 
 {	
-	global $Insofern_Taxonomy_Image;
+	global $Taxonomy_Image;
 	
 	if ( is_tax() ) 
 	{
 		$term = get_queried_object();
-		$meta = get_metadata( 'term', $term->term_id, $Insofern_Taxonomy_Image->metadata_name, true );
+		$meta = get_metadata( 'term', $term->term_id, $Taxonomy_Image->metadata_name, true );
 		return $meta;
 	}
 	

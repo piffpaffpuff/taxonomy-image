@@ -1,21 +1,21 @@
-#insofern_taxonomy_image_add_button,
-#insofern_taxonomy_image_remove_button {
+#taxonomy_image_add_button,
+#taxonomy_image_remove_button {
 	font-size: 12px;
 }
 
-#insofern_taxonomy_image_placeholder img {
+#taxonomy_image_placeholder img {
 	display: block;
 	padding-bottom: 6px;
 }
 
-#insofern_taxonomy_image_remove_button {
+#taxonomy_image_remove_button {
 	display: none;	
 }
 
-.column-insofern_taxonomy_description_column {
+.column-taxonomy_description_column {
 	color: #666;
 }
 
-#insofern_taxonomy_image_column {
+#taxonomy_image_column {
 	width: 70px;
 }
