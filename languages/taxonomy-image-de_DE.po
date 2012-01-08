@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-01-08 22:50+0100\n"
-"PO-Revision-Date: 2012-01-08 22:51+0100\n"
+"PO-Revision-Date: 2012-01-08 23:11+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -36,10 +36,9 @@ msgstr "Bild festlegen"
 #: /Users/negro/Projekte/wordpress/programming/wp-content/plugins/taxonomy-image/taxonomy-image.php:253
 #: /Users/negro/Projekte/wordpress/programming/wp-content/plugins/taxonomy-image/taxonomy-image.php:263
 msgid "The image is not prominent by default, however some themes may show it."
-msgstr "Das Bild wird nicht standardmässig gezeigt"
+msgstr "Das Bild wird nicht immer angezeigt. Bei dem ein oder anderen Theme mag es angezeigt werden."
 
 #: /Users/negro/Projekte/wordpress/programming/wp-content/plugins/taxonomy-image/taxonomy-image.php:313
-#, fuzzy
 msgid "Use as image"
 msgstr "Als Bild verwenden"
 

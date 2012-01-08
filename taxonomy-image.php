@@ -93,14 +93,13 @@ class Taxonomy_Image
 		load_plugin_textdomain('taxonomy-image', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 
 		//
-		/*
-		$sql = "SELECT * FROM " . $wpdb->termmeta . " WHERE meta_key LIKE 'insofern_taxonomy_image_id' AND meta_value NOT LIKE ''";
+				$sql = "SELECT * FROM " . $wpdb->termmeta . " WHERE meta_key LIKE 'insofern_taxonomy_image_id' AND meta_value NOT LIKE ''";
 		$results = $wpdb->get_results($sql);
 		
 		foreach($results as $result){
 			update_metadata('term', $result->term_id, 'taxonomy_image_id', $result->meta_value);
 		}
-		*/
+		
 	}
 	
 	/**
@@ -182,7 +181,7 @@ class Taxonomy_Image
 		    if ($column == 'slug' ) 
 		    {
 				$ordered_columns['taxonomy_image_column'] =  __( 'Image', 'taxonomy-image' );
-				$ordered_columns['taxonomy_description_column'] =  __( 'Description', 'wordpress' );
+				$ordered_columns['taxonomy_description_column'] =  __( 'Description' );
 			}
 			
 			$ordered_columns[$column] = $title;
@@ -400,7 +399,7 @@ class Taxonomy_Image_Settings
 		// Check that the user has the required capability 
 		if (!current_user_can('manage_options'))
 		{
-			wp_die( __('You do not have sufficient permissions to access this page.', 'wordpress') );
+			wp_die( __('You do not have sufficient permissions to access this page.') );
 		}
 		
 		$hidden_submit = 'submit_hidden';
@@ -412,7 +411,7 @@ class Taxonomy_Image_Settings
 			update_option( $this->options_name, $_POST[$this->form_data_name] );
 			
 			// Put an settings updated message on the screen
-			?><div class="updated"><p><strong><?php _e('Settings saved.', 'wordpress'); ?></strong></p></div><?php
+			?><div class="updated"><p><strong><?php _e('Settings saved.'); ?></strong></p></div><?php
 		}
 		
 		// Now display the settings editing screen
@@ -424,7 +423,7 @@ class Taxonomy_Image_Settings
 				<?php settings_fields($this->options_name); ?>
 				<?php do_settings_sections(__FILE__); ?>
 				<p class="submit">
-					<input name="Submit" type="submit" class="button-primary" value="<?php esc_attr_e('Save Changes', 'wordpress'); ?>" />
+					<input name="Submit" type="submit" class="button-primary" value="<?php esc_attr_e('Save Changes'); ?>" />
 				</p>
 			</form>
 		</div><?php
