@@ -63,19 +63,24 @@ class Taxonomy_Image
 	{
 		global $wpdb;
 		
-		// Set a default result
-		$result = false;
-		
+		// Check the collate
+		$collate = '';
+	    if($wpdb->supports_collation()) {
+			if(!empty($wpdb->charset)) $collate = "DEFAULT CHARACTER SET $wpdb->charset";
+			if(!empty($wpdb->collate)) $collate .= " COLLATE $wpdb->collate";
+	    }
+	    
 		// Install table, if it doesnt exist already
-		$sql = sprintf( 'CREATE TABLE IF NOT EXISTS `%stermmeta` (
-			`meta_id` bigint(20) UNSIGNED NOT NULL auto_increment,
-			`term_id` bigint(20) UNSIGNED NOT NULL,
-			`meta_key` varchar(255),
+		$sql = "CREATE TABLE IF NOT EXISTS ". $wpdb->prefix . "termmeta" ." (
+			`meta_id` bigint(20) unsigned NOT NULL auto_increment,
+			`term_id` bigint(20) unsigned NOT NULL default '0',
+			`meta_key` varchar(255) default NULL,
 			`meta_value` longtext,
-			PRIMARY KEY (`meta_id`)
-		)', $wpdb->prefix );
-		
-		$result = $wpdb->query( $sql );
+			PRIMARY KEY (meta_id),
+			KEY term_id (term_id),
+			KEY meta_key (meta_key) ) $collate;";
+			
+	    $wpdb->query($sql);
 	}
 	
 	/**
@@ -93,12 +98,14 @@ class Taxonomy_Image
 		load_plugin_textdomain('taxonomy-image', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 
 		//
-				$sql = "SELECT * FROM " . $wpdb->termmeta . " WHERE meta_key LIKE 'insofern_taxonomy_image_id' AND meta_value NOT LIKE ''";
+	/*
+			$sql = "SELECT * FROM " . $wpdb->termmeta . " WHERE meta_key LIKE 'insofern_taxonomy_image_id' AND meta_value NOT LIKE ''";
 		$results = $wpdb->get_results($sql);
 		
 		foreach($results as $result){
 			update_metadata('term', $result->term_id, 'taxonomy_image_id', $result->meta_value);
 		}
+*/
 		
 	}
 	
@@ -126,7 +133,7 @@ class Taxonomy_Image
 		add_action( 'admin_print_scripts-media-upload-popup', array( $this, 'add_media_scripts' ) );			
 			
 		// Get the option to check if this is an enabled taxonomy		
-		if( isset( $this->taxonomy ) && !empty($this->enabled_taxonomies) &&  in_array( $this->taxonomy, $this->enabled_taxonomies ) ) 
+		if( isset( $this->taxonomy ) && isset( $this->enabled_taxonomies ) &&  in_array( $this->taxonomy, $this->enabled_taxonomies ) ) 
 		{
 			add_action( $this->taxonomy . '_add_form_fields', array( $this, 'create_content' ) );
 			add_action( $this->taxonomy . '_edit_form_fields', array( $this, 'create_content' ) );
